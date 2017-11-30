@@ -246,24 +246,22 @@ export default class TextureSystem extends WebGLSystem
             }
         }
         else*/
-        if (texture.resource && texture.resource.onTextureUpload(this, texture, glTexture))
+        if (texture.resource && texture.resource.onTextureUpload(this.renderer, texture, glTexture))
         {
             // texture is uploaded, dont do anything!
+            glTexture.mipmap = texture.mipmap && texture.isPowerOfTwo;
         }
         else
         {
             // just set its size
             glTexture.uploadData(null, texture.width, texture.height);
+            glTexture.mipmap = false;
         }
 
         // lets only update what changes..
-        if (texture.resource && texture.resource.onTextureStyle)
+        if (texture.dirtyStyleId !== glTexture.dirtyStyleId)
         {
-            texture.resource.onTextureStyle(this, texture, glTexture);
-        }
-        else
-        {
-            this.setStyle(texture);
+            this.updateTextureStyle(texture);
         }
         glTexture.dirtyId = texture.dirtyId;
     }
@@ -299,14 +297,39 @@ export default class TextureSystem extends WebGLSystem
         }
     }
 
-    setStyle(texture)
+    updateTextureStyle(texture)
+    {
+        const glTexture = texture._glTextures[this.CONTEXT_UID];
+        const gl = this.gl;
+
+        if (!glTexture)
+        {
+            return;
+        }
+        if (texture.resource && texture.resource.onTextureStyle)
+        {
+            texture.resource.onTextureStyle(this.renderer, texture, glTexture);
+        }
+        else
+        {
+            this.setStyle(texture, glTexture);
+        }
+        glTexture.dirtyStyleId = texture.dirtyStyleId;
+    }
+
+    setStyle(texture, glTexture)
     {
         const gl = this.gl;
+
+        if (glTexture.mipmap)
+        {
+            gl.generateMipmap(texture.target);
+        }
 
         gl.texParameteri(texture.target, gl.TEXTURE_WRAP_S, texture.wrapMode);
         gl.texParameteri(texture.target, gl.TEXTURE_WRAP_T, texture.wrapMode);
 
-        if (texture.mipmap && texture.width === texture.height)
+        if (glTexture.mipmap)
         {
             /* eslint-disable max-len */
             gl.texParameteri(texture.target, gl.TEXTURE_MIN_FILTER, texture.scaleMode ? gl.LINEAR_MIPMAP_LINEAR : gl.NEAREST_MIPMAP_NEAREST);

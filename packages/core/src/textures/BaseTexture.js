@@ -20,15 +20,18 @@ export default class BaseTexture extends EventEmitter
         this.touched = 0;
 
         /**
-         * The width of texture
+         * The width of the base texture set when the image has loaded
          *
-         * @member {Number}
+         * @readonly
+         * @member {number}
          */
         this.width = 0;
+
         /**
-         * The height of texture
+         * The height of the base texture set when the image has loaded
          *
-         * @member {Number}
+         * @readonly
+         * @member {number}
          */
         this.height = 0;
 
@@ -98,6 +101,8 @@ export default class BaseTexture extends EventEmitter
 
         this.dirtyId = 0;
 
+        this.dirtyStyleId = 0;
+
         this.valid = false;
 
         this.cacheId = null;
@@ -112,7 +117,10 @@ export default class BaseTexture extends EventEmitter
         {
             // lets convert this to a resource..
             this.resource = createResource(resource);
-            this.resource.onTextureNew(this);
+            if (this.resource.onTextureNew)
+            {
+                this.resource.onTextureNew(this);
+            }
         }
 
         /**
@@ -165,6 +173,28 @@ export default class BaseTexture extends EventEmitter
     }
 
     /**
+     * Pixel width of the source of this texture
+     *
+     * @readonly
+     * @member {number}
+     */
+    get realWidth()
+    {
+        return this.width * this.resolution;
+    }
+
+    /**
+     * Pixel height of the source of this texture
+     *
+     * @readonly
+     * @member {number}
+     */
+    get realHeight()
+    {
+        return this.height * this.resolution;
+    }
+
+    /**
      * Changes style of BaseTexture
      *
      * @param {number} scaleMode pixi scalemode
@@ -174,13 +204,17 @@ export default class BaseTexture extends EventEmitter
      * @returns {BaseTexture} this
      */
     setStyle(scaleMode,
+             mipmap,
              format,
-             type,
-             mipmap)
+             type)
     {
         if (scaleMode !== undefined)
         {
             this.scaleMode = scaleMode;
+        }
+        if (mipmap !== undefined)
+        {
+            this.mipmap = mipmap;
         }
         if (format !== undefined)
         {
@@ -190,6 +224,7 @@ export default class BaseTexture extends EventEmitter
         {
             this.type = type;
         }
+        this.dirtyStyleId++;
     }
 
     /**
@@ -202,9 +237,9 @@ export default class BaseTexture extends EventEmitter
      */
     setSize(width, height, resolution)
     {
+        this.resolution = resolution || this.resolution;
         this.width = width;
         this.height = height;
-        this.resolution = resolution || this.resolution;
         this.isPowerOfTwo = bitTwiddle.isPow2(this.realWidth) && bitTwiddle.isPow2(this.realHeight);
         this.update();
 
@@ -216,9 +251,10 @@ export default class BaseTexture extends EventEmitter
      *
      * @param {number} realWidth w
      * @param {number} realHeight h
+     * @param {number} [resolution] res
      * @returns {BaseTexture} this
      */
-    setRealSize(realWidth, realHeight)
+    setRealSize(realWidth, realHeight, resolution)
     {
         this.width = realWidth / this.resolution;
         this.height = realHeight / this.resolution;
@@ -288,6 +324,7 @@ export default class BaseTexture extends EventEmitter
         else
         {
             this.dirtyId++;
+            this.dirtyStyleId++;
             this.emit('update', this);
         }
     }
