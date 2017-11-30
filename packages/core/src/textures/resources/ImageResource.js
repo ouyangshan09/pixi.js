@@ -1,6 +1,6 @@
 import { determineCrossOrigin } from '@pixi/utils';
 import BaseImageResource from './BaseImageResource';
-import settings from '../../settings';
+import { settings } from '@pixi/settings';
 
 /**
  * Resource type for HTMLImageElement.
@@ -30,6 +30,7 @@ export default class ImageResource extends BaseImageResource
         this.preserveBitmap = false;
         this.createBitmap = (createBitmap !== undefined) ? createBitmap
             : (settings.CREATE_IMAGE_BITMAP && !!window.createImageBitmap);
+        this.bitmap = null;
 
         if (loadRightNow)
         {

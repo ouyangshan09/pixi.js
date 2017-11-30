@@ -1,6 +1,6 @@
 import TextureResource from './TextureResource';
 
-export default class BufferResource extends SingleTextureResource
+export default class BufferResource extends TextureResource
 {
     constructor(data, width, height)
     {

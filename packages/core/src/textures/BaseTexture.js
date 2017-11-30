@@ -100,6 +100,12 @@ export default class BaseTexture extends EventEmitter
 
         this.valid = false;
 
+        this.cacheId = null;
+
+        this.textureCacheIds = [];
+
+        this.destroyed = false;
+
         this.resource = null;
 
         if (resource)
@@ -108,14 +114,6 @@ export default class BaseTexture extends EventEmitter
             this.resource = createResource(resource);
             this.resource.onTextureNew(this);
         }
-
-        this.cacheId = null;
-
-        this.validate();
-
-        this.textureCacheIds = [];
-
-        this.destroyed = false;
 
         /**
          * Fired when a not-immediately-available source finishes loading.
@@ -283,7 +281,7 @@ export default class BaseTexture extends EventEmitter
             if (this.width > 0 && this.height > 0)
             {
                 this.valid = true;
-                this.emit('validate', this);
+                this.emit('loaded', this);
                 this.emit('update', this);
             }
         }
